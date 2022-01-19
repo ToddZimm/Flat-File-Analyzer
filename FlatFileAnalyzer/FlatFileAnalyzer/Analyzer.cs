@@ -10,21 +10,21 @@ namespace FlatFileAnalyzer
 {
     public static class Analyzer
     {
-        public static DataTable ReadFile(string InputFile, bool HasHeader = true, string delimiter = ",", string qualifier = "")
+        public static DataTable ReadFile(Options options)
         {
             DataTable dt = new DataTable();
             long rowCount = 0;
             int colCount = 0;
-            string[] separators = new string[] {string.Concat(qualifier, delimiter, qualifier)};
+            string[] separators = new string[] {string.Concat(options.Qualifier, options.Delimiter, options.Qualifier)};
 
-            foreach (string line in File.ReadLines(InputFile))
+            foreach (string line in File.ReadLines(options.InputFile))
             {
                 rowCount++;
                 string row;
 
                 //remove qualifier from beginning and end of line
-                if (qualifier != string.Empty)
-                    row = line.Substring(qualifier.Length, line.Length - (qualifier.Length * 2));
+                if (options.Qualifier != string.Empty)
+                    row = line.Substring(options.Qualifier.Length, line.Length - (options.Qualifier.Length * 2));
                 else
                     row = line;
                 
@@ -36,13 +36,13 @@ namespace FlatFileAnalyzer
                     foreach (string col in cols)
                     {
                         colCount++;
-                        string colName = HasHeader ? col.Trim() : "Col" + colCount.ToString();
+                        string colName = options.HasHeader ? col.Trim() : "Col" + colCount.ToString();
                         dt.Columns.Add(colName, System.Type.GetType("System.String"));
                     }
                 }
 
                 //Add data rows
-                if (rowCount > 1 || !HasHeader)
+                if (rowCount > 1 || !options.HasHeader)
                 {
                     DataRow dr = dt.NewRow();
                     for (int k = 0; k < cols.Count(); k++)
@@ -59,7 +59,7 @@ namespace FlatFileAnalyzer
         public static List<ColumnInfo> AnalyzeColumns (ref DataTable table)
         {
             List<ColumnInfo> columns = new List<ColumnInfo>();
-            List<string> boolValues = new List<string>() { "0", "1", "true", "false", "yes", "no" };
+            List<string> boolValues = new List<string>() { "0", "1", "true", "false" };
 
             foreach (DataColumn col in table.Columns)
             {

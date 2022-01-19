@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using CommandLine;
 
 namespace FlatFileAnalyzer
 {
@@ -9,73 +11,45 @@ namespace FlatFileAnalyzer
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Enter file to analyze: ");
-            string inputFile = Console.ReadLine();
-            while (inputFile != "" && !File.Exists(inputFile))
+            CommandLine.Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(RunAnalysis);
+        }
+
+        private static void RunAnalysis(Options options)
+        {
+            string outputfile = Path.ChangeExtension(options.InputFile, "html");
+            DataTable table = null;
+
+            // Read the input file to a datatable
+            try
             {
-                Console.WriteLine("Input file not found.");
-                Console.WriteLine("Enter file to analyze or press Enter to exit: ");
-                inputFile = @"" + Console.ReadLine();
+                table = Analyzer.ReadFile(options);
             }
-            
-            if (inputFile != "")
+            catch (Exception ex)
             {
-                Console.WriteLine("Enter column delimiter: ");
-                string delimiter = @"" + Console.ReadLine();
+                Console.WriteLine("Error reading file: " + ex.Message);
+            }
 
-                Console.WriteLine("Enter text qualifier: ");
-                string qualifier = @"" + Console.ReadLine();
-
-                bool header = true;
-                string headeryn = "";
-                while (headeryn != "Y" && headeryn != "N")
-                {
-                    Console.WriteLine("File has header row? (Y/N): ");
-                    headeryn = @"" + Console.ReadLine();
-                }
-                if (headeryn == "N")
-                    header = false;
-
-                string outputfile = Path.ChangeExtension(inputFile, "html");
-                DataTable table = null;
-
-                // Read the input file to a datatable
+            // Analyze column contents
+            if (table != null)
+            {
+                FlatFileInfo flatFile = new FlatFileInfo();
+                flatFile.InputFile = Path.GetFullPath(options.InputFile);
+                flatFile.RecordCount = table.Rows.Count;
+                flatFile.ColumnCount = table.Columns.Count;
                 try
                 {
-                    table = Analyzer.ReadFile(inputFile, header, delimiter, qualifier);
+                    flatFile.Columns = Analyzer.AnalyzeColumns(ref table);
+                    flatFile.SampleRows = table.Rows.Cast<System.Data.DataRow>().Take(10).CopyToDataTable();
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error reading file: " + ex.Message);
-                    Console.WriteLine();
-                    Console.WriteLine("Press enter to exit.");
-                    _ = Console.ReadLine();
+                    Console.WriteLine("Error analyzing columns: " + ex.Message);
                 }
 
-                // Analyze column contents
-                if (table != null)
-                {
-                    FlatFileInfo flatFile = new FlatFileInfo();
-                    flatFile.InputFile = Path.GetFullPath(inputFile);
-                    flatFile.RecordCount = table.Rows.Count;
-                    flatFile.ColumnCount = table.Columns.Count;
-                    try
-                    {
-                        flatFile.Columns = Analyzer.AnalyzeColumns(ref table);
-                        flatFile.SampleRows = table.Rows.Cast<System.Data.DataRow>().Take(10).CopyToDataTable();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error analyzing contents: " + ex.Message);
-                        Console.WriteLine();
-                        Console.WriteLine("Press enter to exit.");
-                        _ = Console.ReadLine();
-                    }
-
-                    // Output results to html file
-                    File.WriteAllText(outputfile, flatFile.GetHtmlResults());
-                    System.Diagnostics.Process.Start(outputfile);
-                }
+                // Output results to html file
+                File.WriteAllText(outputfile, flatFile.GetHtmlResults());
+                System.Diagnostics.Process.Start(outputfile);
             }
         }
     }
