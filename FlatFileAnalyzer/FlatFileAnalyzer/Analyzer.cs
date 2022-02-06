@@ -86,7 +86,7 @@ namespace FlatFileAnalyzer
                         columns[i].RecordsPopulated++;
 
                         // Check for boolean data type
-                        if (!boolValues.Contains(cellValue))
+                        if (!boolValues.Contains(cellValue.ToLower()))
                             columns[i].IsBoolean = false;
 
                         // Check for datetime data type
