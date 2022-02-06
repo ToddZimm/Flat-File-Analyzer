@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.IO;
 
 namespace FlatFileAnalyzer
 {
@@ -12,18 +13,19 @@ namespace FlatFileAnalyzer
         public List<ColumnInfo> Columns { get; set; }
         public DataTable SampleRows { get; set; }
         public string GetSqlTableStatement () 
-        { 
-                StringBuilder sql = new StringBuilder();
-                sql.AppendLine("CREATE TABLE FlatFileTable (");
-                for (int i = 0; i < Columns.Count; i++)
-                {
-                    if (i == 0)
-                        sql.AppendLine("   [" + Columns[i].Name.Replace(" ", "_") + "] " + Columns[i].SqlDataType + " NULL");
-                    else
-                        sql.AppendLine("  ,[" + Columns[i].Name.Replace(" ", "_") + "] " + Columns[i].SqlDataType + " NULL");
-                }
-                sql.AppendLine(")");
-                return sql.ToString();
+        {
+            string tableName = Path.GetFileNameWithoutExtension(InputFile).Replace(' ','_');
+            StringBuilder sql = new StringBuilder();
+            sql.AppendLine("CREATE TABLE " + tableName + " (");
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                if (i == 0)
+                    sql.AppendLine("   [" + Columns[i].Name.Replace(" ", "_") + "] " + Columns[i].SqlDataType + " NULL");
+                else
+                    sql.AppendLine("  ,[" + Columns[i].Name.Replace(" ", "_") + "] " + Columns[i].SqlDataType + " NULL");
+            }
+            sql.AppendLine(")");
+            return sql.ToString();
         }
 
         public string GetHtmlResults()
