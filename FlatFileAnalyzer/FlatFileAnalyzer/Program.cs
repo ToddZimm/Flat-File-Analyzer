@@ -50,8 +50,6 @@ namespace FlatFileAnalyzer
                     RunAnalysis(options);
                 }
             }
-
-            Console.ReadKey();
         }
 
         private static void RunAnalysis(Options options)
@@ -88,7 +86,7 @@ namespace FlatFileAnalyzer
 
                 // Output results to html file
                 File.WriteAllText(outputfile, flatFile.GetHtmlResults());
-                System.Diagnostics.Process.Start(outputfile);
+                _ = System.Diagnostics.Process.Start(outputfile);
             }
         }
     }
