@@ -11,8 +11,47 @@ namespace FlatFileAnalyzer
     {
         static void Main(string[] args)
         {
-            CommandLine.Parser.Default.ParseArguments<Options>(args)
+            if (args.Length > 0)
+            {
+                CommandLine.Parser.Default.ParseArguments<Options>(args)
                 .WithParsed(RunAnalysis);
+            }
+            else
+            {
+                Options options = new Options();
+
+                Console.WriteLine("Enter file to analyze: ");
+                options.InputFile = Console.ReadLine();
+                while (options.InputFile != "" && !File.Exists(options.InputFile))
+                {
+                    Console.WriteLine("Input file not found.");
+                    Console.WriteLine("Enter file to analyze or press Enter to exit: ");
+                    options.InputFile = @"" + Console.ReadLine();
+                }
+
+                if (options.InputFile != "")
+                {
+                    Console.WriteLine("Enter column delimiter: ");
+                    options.Delimiter = @"" + Console.ReadLine();
+
+                    Console.WriteLine("Enter text qualifier: ");
+                    options.Qualifier = @"" + Console.ReadLine();
+
+                    options.HasHeader = true;
+                    string headeryn = "";
+                    while (headeryn != "Y" && headeryn != "N")
+                    {
+                        Console.WriteLine("File has header row? (Y/N): ");
+                        headeryn = @"" + Console.ReadLine();
+                    }
+                    if (headeryn == "N")
+                        options.HasHeader = false;
+
+                    RunAnalysis(options);
+                }
+            }
+
+            Console.ReadKey();
         }
 
         private static void RunAnalysis(Options options)
