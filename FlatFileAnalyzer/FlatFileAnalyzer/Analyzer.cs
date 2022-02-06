@@ -59,7 +59,7 @@ namespace FlatFileAnalyzer
         public static List<ColumnInfo> AnalyzeColumns (ref DataTable table)
         {
             List<ColumnInfo> columns = new List<ColumnInfo>();
-            List<string> boolValues = new List<string>() { "0", "1", "true", "false", "yes", "no" };
+            List<string> boolValues = new List<string>() { "0", "1", "true", "false" };
 
             foreach (DataColumn col in table.Columns)
             {
@@ -86,7 +86,7 @@ namespace FlatFileAnalyzer
                         columns[i].RecordsPopulated++;
 
                         // Check for boolean data type
-                        if (!boolValues.Contains(cellValue))
+                        if (!boolValues.Contains(cellValue.ToLower()))
                             columns[i].IsBoolean = false;
 
                         // Check for datetime data type
