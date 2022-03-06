@@ -101,7 +101,7 @@ namespace FlatFileAnalyzer
                             columns[i].IsDate = false;
 
                         // Check for integer data type
-                        if (int.TryParse(cellValue, out int number))
+                        if (int.TryParse(cellValue, out int number) && !cellValue.StartsWith("0"))
                         {
                             if (number > columns[i].MaxNumericValue)
                                 columns[i].MaxNumericValue = number;
