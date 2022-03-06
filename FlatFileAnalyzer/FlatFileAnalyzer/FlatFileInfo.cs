@@ -2,6 +2,7 @@
 using System.Data;
 using System.Text;
 using System.IO;
+using System.Linq;
 
 namespace FlatFileAnalyzer
 {
@@ -11,7 +12,8 @@ namespace FlatFileAnalyzer
         public int RecordCount { get; set; }
         public int ColumnCount { get; set; }
         public List<ColumnInfo> Columns { get; set; }
-        public DataTable SampleRows { get; set; }
+        public DataTable ParsedData { get; set; }
+        public List<string> InvalidLines { get; set; }
         public string GetSqlTableStatement () 
         {
             string tableName = Path.GetFileNameWithoutExtension(InputFile).Replace(' ','_');
@@ -31,6 +33,7 @@ namespace FlatFileAnalyzer
         public string GetHtmlResults()
         {
             StringBuilder html = new StringBuilder();
+            DataTable sampleData = ParsedData.Rows.Cast<System.Data.DataRow>().Take(10).CopyToDataTable();
 
             html.AppendLine("<html>\r\n<head>\r\n<style>");
             html.AppendLine("body { font-family: arial,sans; font-size: 11pt; }");
@@ -65,7 +68,27 @@ namespace FlatFileAnalyzer
 
             // Sample data
             html.AppendLine("<h2>Sample Data</h2>");
-            html.Append(SampleRows.GetHtml());
+            if (ParsedData.Rows.Count > 0)
+            {
+                html.Append(sampleData.GetHtml());
+            }
+
+            // Invalid file lines
+            html.AppendLine("<h2>Invalid File Lines</h2>");
+            if (InvalidLines != null && InvalidLines.Count > 0)
+            {
+                html.AppendLine("<div>\r\n<table>");
+                foreach (string line in InvalidLines)
+                {
+                    html.AppendFormat("<tr><td>{0}&nbsp;</td></tr>\r\n", line);
+                }
+                html.AppendLine("</table>\r\n</div>");
+            }
+            else
+            {
+                html.AppendLine("<div>No invalid lines found.</div>");
+            }
+            
             html.AppendLine("</body>\r\n</htlm>");
             return html.ToString();
         }
