@@ -55,38 +55,37 @@ namespace FlatFileAnalyzer
         private static void RunAnalysis(Options options)
         {
             string outputfile = Path.ChangeExtension(options.InputFile, "html");
-            DataTable table = null;
+            FlatFileInfo fileInfo = null;
 
             // Read the input file to a datatable
             try
             {
-                table = Analyzer.ReadFile(options);
+                fileInfo = Analyzer.ReadFile(options);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error reading file: " + ex.Message);
+                _ = Console.ReadKey();
             }
 
             // Analyze column contents
-            if (table != null)
+            if (fileInfo.ParsedData != null)
             {
-                FlatFileInfo flatFile = new FlatFileInfo();
-                flatFile.InputFile = Path.GetFullPath(options.InputFile);
-                flatFile.RecordCount = table.Rows.Count;
-                flatFile.ColumnCount = table.Columns.Count;
                 try
                 {
-                    flatFile.Columns = Analyzer.AnalyzeColumns(ref table);
-                    flatFile.SampleRows = table.Rows.Cast<System.Data.DataRow>().Take(10).CopyToDataTable();
+                    fileInfo.Columns = Analyzer.AnalyzeColumns(fileInfo.ParsedData);
+
+                    // Output results to html file
+                    File.WriteAllText(outputfile, fileInfo.GetHtmlResults());
+                    _ = System.Diagnostics.Process.Start(outputfile);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error analyzing columns: " + ex.Message);
+                    _ = Console.ReadKey();
                 }
 
-                // Output results to html file
-                File.WriteAllText(outputfile, flatFile.GetHtmlResults());
-                _ = System.Diagnostics.Process.Start(outputfile);
+                
             }
         }
     }

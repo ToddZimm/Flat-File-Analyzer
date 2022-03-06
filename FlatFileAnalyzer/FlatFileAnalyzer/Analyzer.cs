@@ -10,8 +10,12 @@ namespace FlatFileAnalyzer
 {
     public static class Analyzer
     {
-        public static DataTable ReadFile(Options options)
+        public static FlatFileInfo ReadFile(Options options)
         {
+            FlatFileInfo info = new FlatFileInfo() {
+                InputFile = Path.GetFullPath(options.InputFile),
+                InvalidLines = new List<string>()
+            };
             DataTable dt = new DataTable();
             long rowCount = 0;
             int colCount = 0;
@@ -39,24 +43,31 @@ namespace FlatFileAnalyzer
                         string colName = options.HasHeader ? col.Trim() : "Col" + colCount.ToString();
                         dt.Columns.Add(colName, System.Type.GetType("System.String"));
                     }
+                    info.ColumnCount = dt.Columns.Count;
                 }
 
                 //Add data rows
                 if (rowCount > 1 || !options.HasHeader)
                 {
-                    DataRow dr = dt.NewRow();
-                    for (int k = 0; k < cols.Count(); k++)
+                    if (cols.Length == dt.Columns.Count)
                     {
-                        dr[k] = cols[k].ToString();
+                        DataRow dr = dt.NewRow();
+                        for (int k = 0; k < cols.Count(); k++)
+                        {
+                            dr[k] = cols[k].ToString();
+                        }
+                        dt.Rows.Add(dr);
                     }
-                    dt.Rows.Add(dr);
+                    else
+                        info.InvalidLines.Add(string.Concat("Line ", rowCount.ToString(), ": ", line));
                 }
             }
-
-            return dt;
+            info.ParsedData = dt;
+            info.RecordCount = dt.Rows.Count;
+            return info;
         }
 
-        public static List<ColumnInfo> AnalyzeColumns (ref DataTable table)
+        public static List<ColumnInfo> AnalyzeColumns (DataTable table)
         {
             List<ColumnInfo> columns = new List<ColumnInfo>();
             List<string> boolValues = new List<string>() { "0", "1", "true", "false" };
