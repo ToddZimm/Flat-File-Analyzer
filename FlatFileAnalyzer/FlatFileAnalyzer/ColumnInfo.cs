@@ -23,12 +23,15 @@ namespace FlatFileAnalyzer
             get
             {
                 string val = "";
-                if (IsDate && !IsDecimal)
-                    val = MinDateValue.ToString();
-                else if (IsInteger)
-                    val = MinNumericValue.ToString();
-                else if (IsDecimal)
-                    val = MinNumericValue.ToString();
+                if (RecordsPopulated > 0)
+                {
+                    if (IsDate && !IsDecimal)
+                        val = MinDateValue.ToString();
+                    else if (IsInteger)
+                        val = MinNumericValue.ToString();
+                    else if (IsDecimal)
+                        val = MinNumericValue.ToString();
+                }
                 return val;
             }
         }
@@ -37,16 +40,19 @@ namespace FlatFileAnalyzer
             get
             {
                 string val = "";
-                if (IsDate && !IsDecimal)
-                    val = MaxDateValue.ToString();
-                else if (IsInteger)
-                    val = MaxNumericValue.ToString();
-                else if (IsDecimal)
-                    val = MaxNumericValue.ToString();
-                else if (IsBoolean)
-                    val = "";
-                else
-                    val = LongestString;
+                if (RecordsPopulated > 0)
+                {
+                    if (IsDate && !IsDecimal)
+                        val = MaxDateValue.ToString();
+                    else if (IsInteger)
+                        val = MaxNumericValue.ToString();
+                    else if (IsDecimal)
+                        val = MaxNumericValue.ToString();
+                    else if (IsBoolean)
+                        val = "";
+                    else
+                        val = LongestString;
+                }
                 return val;
             }
         }
@@ -55,7 +61,9 @@ namespace FlatFileAnalyzer
             get
             {
                 string sqlType = "";
-                if (IsBoolean)
+                if (RecordsPopulated == 0)
+                    sqlType = "nvarchar(1)";
+                else if (IsBoolean)
                     sqlType = "bit";
                 else if (IsDate && !IsDecimal)
                     sqlType = "datetime";
